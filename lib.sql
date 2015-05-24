@@ -1,6 +1,6 @@
 ---------------------------------------
 -- converts mapnik's !scale_denominator! param to web mercator zoom
-CREATE OR REPLACE FUNCTION public.z(scaledenominator numeric)
+CREATE OR REPLACE FUNCTION public.mb_z(scaledenominator numeric)
  RETURNS integer
  LANGUAGE plpgsql IMMUTABLE
 AS $function$
@@ -17,7 +17,7 @@ $function$;
 -- early label placement helper. Snap geometry to a grid sized
 -- for point places at the given zoom level and return a string "hash"
 -- for deduping.
-CREATE OR REPLACE FUNCTION public.labelgrid(geometry geometry(Geometry, 900913), grid_width numeric, pixel_width numeric)
+CREATE OR REPLACE FUNCTION public.mb_labelgrid(geometry geometry, grid_width numeric, pixel_width numeric)
  RETURNS text
  LANGUAGE plpgsql IMMUTABLE
 AS $function$
@@ -38,7 +38,7 @@ $function$;
 ---------------------------------------
 -- early label placement filter -- determine whether a label text will
 -- fit on a given line at a given zoom level.
-CREATE OR REPLACE FUNCTION public.linelabel(zoom numeric, label text, geometry geometry(Geometry, 900913))
+CREATE OR REPLACE FUNCTION public.mb_linelabel(zoom numeric, label text, geometry geometry)
  RETURNS boolean
  LANGUAGE plpgsql IMMUTABLE
 AS $function$
@@ -59,8 +59,8 @@ $function$;
 --
 -- select st_geometrytype(st_pointonsurface(st_geomfromtext('POLYGON EMPTY')));
 -- > ST_Polygon
-CREATE OR REPLACE FUNCTION public.topoint(geom geometry(Geometry, 900913))
- RETURNS geometry(Point, 900913)
+CREATE OR REPLACE FUNCTION public.mb_topoint(geom geometry)
+ RETURNS geometry
  LANGUAGE plpgsql IMMUTABLE
 AS $function$
 begin
@@ -80,7 +80,7 @@ $function$;
 -- ---------------------------------------------------------------------
 -- Clean integer
 
-create or replace function clean_int(i text)
+create or replace function mb_clean_int(i text)
     returns integer
     immutable
     language plpgsql as
@@ -98,7 +98,7 @@ $$;
 -- ---------------------------------------------------------------------
 -- Clean numeric
 
-create or replace function clean_numeric(i text)
+create or replace function mb_clean_numeric(i text)
     returns numeric
     immutable
     language plpgsql as
@@ -117,7 +117,7 @@ $$;
 -- ZRES
 -- Takes a web mercator zoom level and returns the pixel resolution for that
 -- scale, assuming 256x256 pixel tiles. Non-integer zoom levels are accepted.
-create or replace function zres(z float)
+create or replace function mb_zres(z float)
     returns float
     language plpgsql immutable
 as $func$
@@ -132,7 +132,7 @@ $func$;
 -- real-world measurements. Assumes input geometries are Web Mercator and
 -- input distances are real-world meters. Accuracy decreases for larger
 -- buffer distances and at extreme latitudes.
-create or replace function public.merc_buffer(geom geometry, distance numeric)
+create or replace function public.mb_merc_buffer(geom geometry, distance numeric)
     returns geometry
     language plpgsql immutable as
 $function$
@@ -150,7 +150,7 @@ $function$;
 -- real-world measurements. Assumes input geometries are Web Mercator and
 -- input distances are real-world meters. Accuracy decreases for larger
 -- distances and at extreme latitudes.
-create or replace function public.merc_dwithin(
+create or replace function public.mb_merc_dwithin(
         geom1 geometry,
         geom2 geometry,
         distance numeric)
@@ -171,7 +171,7 @@ $function$;
 -- Wrapper for ST_Length that adjusts distance by latitude to approximate
 -- real-world measurements. Assumes input geometries are Web Mercator.
 -- Accuracy decreases for larger y-axis ranges of the input.
-create or replace function public.merc_length(geom geometry)
+create or replace function public.mb_merc_length(geom geometry)
     returns numeric
     language plpgsql immutable as
 $function$
@@ -184,8 +184,8 @@ $function$;
 -- TILE_BBOX
 -- Given a Web Mercator tile ID as (z, x, y), returns a bounding-box
 -- geometry of the area covered by that tile.
-create or replace function tile_bbox(z int, x int, y int)
-    returns geometry(geometry)
+create or replace function mb_tile_bbox(z int, x int, y int)
+    returns geometry
     language plpgsql immutable as
 $$
 declare
