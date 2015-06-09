@@ -17,7 +17,7 @@ $function$;
 -- early label placement helper. Snap geometry to a grid sized
 -- for point places at the given zoom level and return a string "hash"
 -- for deduping.
-CREATE OR REPLACE FUNCTION public.mb_labelgrid(geometry geometry, grid_width numeric, pixel_width numeric)
+CREATE OR REPLACE FUNCTION public.mb_labelgrid(geometry geometry(Geometry, 900913), grid_width numeric, pixel_width numeric)
  RETURNS text
  LANGUAGE plpgsql IMMUTABLE
 AS $function$
@@ -38,7 +38,7 @@ $function$;
 ---------------------------------------
 -- early label placement filter -- determine whether a label text will
 -- fit on a given line at a given zoom level.
-CREATE OR REPLACE FUNCTION public.mb_linelabel(zoom numeric, label text, geometry geometry)
+CREATE OR REPLACE FUNCTION public.mb_linelabel(zoom numeric, label text, geometry geometry(Geometry, 900913))
  RETURNS boolean
  LANGUAGE plpgsql IMMUTABLE
 AS $function$
@@ -59,8 +59,8 @@ $function$;
 --
 -- select st_geometrytype(st_pointonsurface(st_geomfromtext('POLYGON EMPTY')));
 -- > ST_Polygon
-CREATE OR REPLACE FUNCTION public.mb_topoint(geom geometry)
- RETURNS geometry
+CREATE OR REPLACE FUNCTION public.mb_topoint(geom geometry(Geometry, 900913))
+ RETURNS geometry(Point, 900913)
  LANGUAGE plpgsql IMMUTABLE
 AS $function$
 begin
@@ -185,7 +185,7 @@ $function$;
 -- Given a Web Mercator tile ID as (z, x, y), returns a bounding-box
 -- geometry of the area covered by that tile.
 create or replace function mb_tile_bbox(z int, x int, y int)
-    returns geometry
+    returns geometry(geometry)
     language plpgsql immutable as
 $$
 declare
